@@ -79,43 +79,79 @@ class Bullet:
     def draw(self, surface):
         pygame.draw.circle(surface, YELLOW, (int(self.x), int(self.y)), self.radius)
 
+# --- 콜트(Colt) 기반 캐릭터 스탯 적용 (Brawl Stars Meta) ---
+# 이동 속도: 기본 720 (타일 단위 계산을 파이게임 픽셀에 맞춰 조정, 약 4.5 픽셀/프레임)
+# 발사체 속도(Projectile Speed): 약 4000 (게임 내 스케일 적용 시 약 25 픽셀/프레임)
+# 재장전(Reload Time): 1.4 ~ 1.6초
+# 연사 방식: 6연발 (Six-Shooter)
+# 탄환 공격력: 한 발당 360 (최대 레벨 기준 확장 가능)
+# -------------------------------------------------------------
+
 class Player:
     def __init__(self):
         self.x, self.y = 100, HEIGHT // 2
-        self.radius, self.speed = 15, 4
+        self.radius, self.speed = 15, 4.5  # 콜트의 기본 이동 속도 반영 (기존 4에서 상향)
         self.bullets = []
         self.is_bursting = False
-        self.burst_count, self.burst_timer = 0, 0
-        self.bullet_speed = 12
+        self.burst_count = 0
+        
+        # 콜트 특유의 연사 및 재장전 시스템 (Tick 기준)
+        self.burst_timer = 0
+        self.burst_delay = 4 # 연사 중 각 총알이 나가는 간격 (프레임)
+        self.reload_timer = 0
+        self.reload_time_max = 84 # 1.4초 재장전 시간 (60FPS 기준 84프레임)
+        self.ammo = 3 # 콜트의 최대 탄창(가젯 미사용 시 기본 3개)
+        
+        # 발사체 속도 (기존 12에서 콜트의 빠른 탄속 25로 대폭 상향)
+        self.bullet_speed = 25
+        
+        # 미러 스트레이핑 관련 상태
         self.mirror_strafing_active = False
         self.target_distance = 0
         self.los_nx, self.los_ny = 0, 0
 
     def update(self, joy_vec, btn_in, btn_out, enemy):
+        # 1. 탄창 재장전 시스템 (초당 1.4초)
+        if self.ammo < 3 and not self.is_bursting:
+            self.reload_timer -= 1
+            if self.reload_timer <= 0:
+                self.ammo += 1
+                self.reload_timer = self.reload_time_max
+
+        # 2. 이동 로직
         if self.mirror_strafing_active:
-            # 버튼 입력을 통한 거리 조절
+            # 버튼 입력을 통한 거리 조절 (콜트의 이동 속도 적용)
             if btn_in: self.target_distance = max(50, self.target_distance - self.speed)
             if btn_out: self.target_distance = min(700, self.target_distance + self.speed)
-            # 타겟에 연동된 미러 스트레이핑
             self.x = enemy.x + self.los_nx * self.target_distance
             self.y = enemy.y + self.los_ny * self.target_distance
         else:
-            # 조이스틱 입력을 통한 일반 이동
             self.x += joy_vec[0] * self.speed
             self.y += joy_vec[1] * self.speed
 
         self.x = max(self.radius, min(self.x, WIDTH - self.radius))
         self.y = max(self.radius, min(self.y, HEIGHT - self.radius))
 
+        # 3. 콜트의 6연사 로직 적용 (1탄창 당 6발 소모)
         if self.is_bursting:
             self.burst_timer -= 1
             if self.burst_timer <= 0:
+                # 에임봇: 현재 적의 위치와 속도를 기반으로 타겟팅
                 b_vx, b_vy = get_predictive_aim_velocity(
                     self.x, self.y, enemy.x, enemy.y, enemy.vx, enemy.vy, self.bullet_speed)
-                self.bullets.append(Bullet(self.x, self.y, b_vx, b_vy))
+                
+                # 콜트 공격력 속성 부여 (표시용으로 사용 가능)
+                new_bullet = Bullet(self.x, self.y, b_vx, b_vy)
+                new_bullet.speed = self.bullet_speed 
+                new_bullet.damage = 360 # 1레벨 콜트 기준 1발당 데미지
+                
+                self.bullets.append(new_bullet)
                 self.burst_count += 1
-                self.burst_timer = 5
-                if self.burst_count >= 6: self.is_bursting = False
+                self.burst_timer = self.burst_delay
+                
+                if self.burst_count >= 6: 
+                    self.is_bursting = False
+                    self.reload_timer = self.reload_time_max # 연사 종료 후 장전 시작
 
         for b in self.bullets[:]:
             b.update()
@@ -125,6 +161,11 @@ class Player:
     def draw(self, surface):
         pygame.draw.circle(surface, BLUE, (int(self.x), int(self.y)), self.radius)
         for b in self.bullets: b.draw(surface)
+        
+        # 콜트 탄창(Ammo) UI 그리기 (캐릭터 위쪽)
+        for i in range(3):
+            color = YELLOW if i < self.ammo else GRAY
+            pygame.draw.rect(surface, color, (self.x - 15 + (i * 12), self.y - 25, 8, 5))
 
 def draw_button(surface, rect, text, font, color):
     pygame.draw.rect(surface, color, rect, border_radius=15)
@@ -182,8 +223,9 @@ def main():
                         if rect_cancel.collidepoint(tx, ty):
                             player.mirror_strafing_active = False
                     else:
-                        if rect_fire.collidepoint(tx, ty) and not player.is_bursting:
+                        if rect_fire.collidepoint(tx, ty) and not player.is_bursting and player.ammo > 0:
                             player.is_bursting = True
+                            player.ammo -= 1 # 발사 시 탄창 1개 소모
                             player.burst_count, player.burst_timer = 0, 0
                             
                 elif event.type == pygame.FINGERMOTION:
@@ -207,8 +249,9 @@ def main():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = event.pos
                 if not player.mirror_strafing_active and rect_fire.collidepoint(mx, my):
-                    if not player.is_bursting:
+                    if not player.is_bursting and player.ammo > 0:
                         player.is_bursting = True
+                        player.ammo -= 1
                         player.burst_count, player.burst_timer = 0, 0
                 elif player.mirror_strafing_active and rect_cancel.collidepoint(mx, my):
                     player.mirror_strafing_active = False
