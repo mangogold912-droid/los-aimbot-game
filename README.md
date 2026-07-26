@@ -1,52 +1,46 @@
-# LoS Aimbot & Mirror Strafing Game
+# 모바일 지원: LoS 에임봇 & 미러 스트레이핑 게임
 
-A 2D Python game built with Pygame. This project demonstrates advanced player-assist mechanics designed for beginners, featuring a predictive 6-round burst aimbot and Line of Sight (LoS) mirror strafing.
+파이썬(Pygame)으로 제작된 2D 모바일 친화적 게임입니다. 초보자를 위해 예측형 6연사 에임봇과 LoS(시야선) 축 기반 미러 스트레이핑이라는 고급 조작 보조 기능이 포함되어 있습니다. 터치스크린과 가상 조이스틱을 완벽하게 지원합니다!
 
-## 🌟 Features
+## 🌟 핵심 기능
 
-1. **Predictive Aiming (Aimbot)**
-   - Calculates the target's current velocity, distance, and bullet speed using a quadratic equation to predict the exact future collision point.
-   - Fires a 6-round burst that dynamically adjusts to hit a moving target 100% of the time.
+1. **예측 사격 (Aimbot)**
+   - 적의 속도, 거리, 총알 속도를 2차 방정식으로 계산하여 정확한 미래 충돌 지점을 예측합니다.
+   - 우측 하단의 **[FIRE]** 버튼을 누르면 움직이는 적을 100% 명중시키는 6연발 탄환을 발사합니다.
 
-2. **Mirror Strafing on LoS Axis**
-   - Once a bullet hits the enemy, the player enters "Mirror Strafing" mode.
-   - The player is locked onto an invisible Line of Sight (LoS) axis connecting them to the enemy.
-   - If the enemy moves, the player automatically mirrors their movement to maintain the exact same distance and angle.
+2. **미러 스트레이핑 (Mirror Strafing)**
+   - 총알이 적에게 적중하면 플레이어는 "미러 스트레이핑" 모드에 진입합니다.
+   - 적과 플레이어를 연결하는 가상의 시야선(LoS) 축에 플레이어가 고정되며, 적이 움직여도 자동으로 똑같이 움직이며 추적합니다.
 
-3. **Dynamic Distance Control**
-   - While in Mirror Strafing mode, the player can move back and forth along the LoS axis to close the gap or retreat, all while perfectly tracking the enemy.
+3. **모바일 전용 가상 컨트롤 (터치 지원)**
+   - **가상 조이스틱**: 화면 좌측 절반을 터치하고 드래그하여 캐릭터를 자유롭게 이동.
+   - **FIRE 버튼**: 화면 우측 하단 터치 시 6연사 발사.
+   - **거리 조절 (IN / OUT)**: 미러 스트레이핑 모드일 때 화면 우측의 버튼을 길게 누르고 있으면 적과의 거리를 좁히거나(IN) 벌릴(OUT) 수 있습니다.
+   - **CANCEL 버튼**: 타겟팅 모드 해제.
 
-## 🛠️ Prerequisites
+## 📱 스마트폰에서 실행하는 방법
 
-- Python 3.7 or higher
-- [Pygame](https://www.pygame.org/)
+파이썬 코드지만 `pygbag`을 이용하면 별도의 앱 설치 없이 스마트폰 웹 브라우저에서 바로 즐길 수 있습니다. (가장 추천하는 방법입니다!)
 
-## 🚀 Installation
-
-1. Clone the repository:
+### 방법: Pygbag으로 웹 버전을 만들어 모바일에서 즐기기
+1. 컴퓨터에 Python과 Pygbag을 설치합니다.
    ```bash
-   git clone https://github.com/yourusername/los-aimbot-game.git
-   cd los-aimbot-game
+   pip install pygame pygbag
    ```
-
-2. Install the required dependencies:
+2. 터미널(명령 프롬프트)에서 코드가 있는 폴더로 이동한 후 아래 명령어를 실행합니다.
    ```bash
-   pip install -r requirements.txt
+   pygbag game.py
    ```
+3. 실행 후 터미널에 `http://localhost:8000` 형태의 주소가 나타납니다.
+4. 컴퓨터와 **동일한 와이파이**에 연결된 스마트폰에서 웹 브라우저(사파리, 크롬 등)를 열고 해당 주소(예: `http://192.168.0.x:8000`)로 접속하시면 모바일 화면에 맞춰 게임이 실행됩니다!
+5. (선택) 웹으로 퍼블리싱된 폴더(`build/web`)를 GitHub Pages 등에 올리면 전 세계 누구나 접속할 수 있습니다.
 
-## 🎮 How to Play
-
-Run the main game script:
+## 💻 PC에서 테스트하기
+물론 PC에서도 마우스 클릭과 드래그를 통해 완벽하게 테스트하고 즐기실 수 있습니다.
 ```bash
+pip install pygame
 python game.py
 ```
 
-### Controls
-- **WASD**: Normal Movement (when not locked on).
-- **Mouse Left Click**: Fire a 6-round predictive burst.
-- **W / S (During Lock-on)**: Move closer or further away along the LoS axis.
-- **SPACEBAR**: Break the mirror strafing lock-on and return to normal movement.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## 📄 라이선스
+MIT License. 게임 개발에 마음껏 활용하고 수정해 보세요!
