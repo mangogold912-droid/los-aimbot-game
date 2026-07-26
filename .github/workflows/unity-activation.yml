@@ -10,11 +10,12 @@ jobs:
     steps:
       - name: Request manual activation file
         id: getManualLicenseFile
-        uses: game-ci/unity-request-activation-file@v2
+        uses: game-ci/unity-request-activation-file@v3
         with:
           unityVersion: 2022.3.10f1
+
       - name: Expose as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.getManualLicenseFile.outputs.filePath }}
+          name: UnityActivationFile
           path: ${{ steps.getManualLicenseFile.outputs.filePath }}
