@@ -1,0 +1,38 @@
+name: Build Unity APK
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'UnityProject/**'
+  workflow_dispatch: {}
+
+jobs:
+  buildForAndroid:
+    name: Build for Android 📱
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Cache Unity Library
+        uses: actions/cache@v3
+        with:
+          path: UnityProject/Library
+          key: Library-Android
+
+      - name: Build Unity Project
+        uses: game-ci/unity-builder@v3
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          projectPath: UnityProject
+          targetPlatform: Android
+          unityVersion: 2022.3.10f1
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: LoS_Aimbot_Unity_APK
+          path: build/Android
